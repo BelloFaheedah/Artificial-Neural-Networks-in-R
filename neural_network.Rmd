@@ -1,0 +1,107 @@
+---
+title: "Predicting Trends using Neural Networks in R"
+output: html_notebook
+---
+
+#Background
+
+Reputed Real Estates (RRE) is a property management company promoting a new residential project. The company has a large amount of data stored in datasets that contain customer records and their response to the previous RRE projects. The higher management of RRE wants to analyze the data in order to predict the success of company's new projects. The management finds out that the most suitable that the most suitable technique for analyzing the data that the company has is the machine-learning algorithm.
+
+
+```{r}
+library('neuralnet')
+library('DMwR2')
+
+```
+```{r}
+training<-read.csv("C:/Users/BELLO FAHEEDAH/Desktop/DASCA_ABDA/Datasets/Datasets/Market_Response_data.csv", header=TRUE, sep = "\t")
+head(training)
+```
+
+```{r}
+testing<-read.csv("C:/Users/BELLO FAHEEDAH/Desktop/DASCA_ABDA/Datasets/Datasets/testing.csv", sep = "\t" )
+head(testing)
+```
+
+#Description of dataset
+Response:. the response of the customers.
+Spend_ratio:. the amount of money a customer can spend to make a purchase
+Age:. the age of customers
+DebtRatio:. the financial ration that gives the ratio of debt with respect to monthly income
+MonthlyIncome:. the mount of money a customer earns per month
+Edu_index:. the level of formal education received by a customer.
+own_houses:. the number of residential and commercial properties owned by a customer
+
+
+Imputing and Scaling Operations
+```{r}
+train<- centralImputation(training)
+head(train)
+```
+
+```{r}
+tdata<- cbind(train[,1], scale(train[,2:7]))
+colnames(tdata) <- c('Response', colnames(tdata[,2:7]))
+
+```
+
+```{r}
+testdata<- centralImputation(testing)
+testdata<- scale(testdata)
+```
+
+Building a neural network model
+```{r}
+attach(train)
+
+```
+
+```{r}
+
+nn<- neuralnet(Response ~ Spend_ratio +age1 +DebtRatio1 + MonthlyIncome1 + Edu_index + Own_houses , data =tdata, hidden=1, err.fct = "sse", linear.output = FALSE, threshold=0.01)
+```
+Plot the neural network
+```{r}
+plot(nn)
+```
+Implementing the neural network algorithm on the testing dataset to check the correctness of the prediction.
+```{r}
+predictions<- cbind(testing, compute(nn, covariate = testdata[,])$net.result)
+predictions
+```
+
+Reseting the name of the last column of the predictions dataset
+```{r}
+colnames(predictions) <- c(colnames(predictions[,-7]), 'net.result')
+```
+
+```{r}
+predictions
+```
+
+Saving the output to a csv file
+```{r}
+write.csv(predictions, file="predicted_result.csv")
+```
+The neural network created above can now be used to predict the probability of response of customers to the market campaign run by RRE
+
+#Creating a Neural Network  with two (2) hidden layers
+```{r}
+nn1<- neuralnet(Response ~ Spend_ratio +age1 +DebtRatio1 + MonthlyIncome1 + Edu_index + Own_houses , data =tdata, hidden=2, err.fct = "sse", linear.output = FALSE, threshold=0.01)
+plot(nn1)
+```
+The plot above illustrates the Neural Network Graph with two hidden layers
+
+Getting predictions
+```{r}
+predictions1<- cbind(testing, compute(nn1, covariate = testdata[,])$net.result)
+colnames(predictions1)<- c(colnames(predictions1[,-7]), 'net.result1')
+head(predictions1)
+
+```
+
+```{r}
+write.csv(predictions1, file="predicted_result_2.csv")
+
+```
+
